@@ -6,6 +6,10 @@ set expandtab
 set hlsearch
 set number
 
+" Maps
+let mapleader = ' '
+noremap <Leader><Leader> :noh<cr>
+
 " Map Ctrl-Backspace to delete the previous word in insert mode.
 imap <C-BS> <C-W>
 
@@ -42,10 +46,6 @@ augroup Binary
   au BufWritePost *.bin set nomod | endif
 augroup END
 
-" Maps
-let mapleader = ' '
-noremap <Leader><Leader> :let @/=''<cr>
-
 " Trailing whitespaces
 :highlight ExtraWhitespace ctermbg=red guibg=red
 :match ExtraWhitespace /\s\+$/
@@ -76,6 +76,10 @@ call plug#begin("~/.vim/plugged")
 
   " pywal
   Plug 'dylanaraps/wal.vim'
+
+  " telescope
+  Plug 'nvim-lua/plenary.nvim'
+  Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.0' }
 call plug#end()
 
 colorscheme wal
