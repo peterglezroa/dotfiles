@@ -1,0 +1,78 @@
+@import url("file:///home/peterglezroa/.cache/wal/colors-waybar.css");
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: mononoki Nerd Font; /* TODO */
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: white;
+}
+
+/* ================================ WIDGETS ================================ */
+
+label {
+/*	background-color: #1D1F28;*/
+    background-color: @background;
+	padding: 8px 16px;
+	margin-top: 8px;
+    border-radius: 6px;
+}
+
+#custom-media {
+	color: #f9e2af;
+}
+
+#custom-notification {
+  color: #f38ba8;
+}
+
+#tray {
+}
+
+#workspaces {
+	background-color: #1e1e2e;
+	border-radius: 15px 0px 0px 15px;
+}
+
+#custom-date {
+  color: #89dceb;
+}
+
+#clock {
+  margin-right: 10px;
+}
+
+#network { }
+
+#pulseaudio {
+    color: #a6e3a1;
+}
+
+#workspaces button {
+    padding: 5px 10px;
+    color: #cba6f7;
+}
+
+#workspaces button.focused {
+    color: #0f0f0f;
+    background-color: #c49ec4;
+    border-radius: 15px;
+}
+
+#workspaces button.urgent {
+    color: #0f0f0f;
+    background-color: #9ec3c4;
+    border-radius: 15px;
+}
+
+#workspaces button:hover {
+	background-color: #c49ec4;
+	color: #0f0f0f;
+	border-radius: 15px;
+}
+
