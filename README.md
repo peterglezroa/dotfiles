@@ -5,6 +5,13 @@ Dot files for the configuration of multiple tools that I use in different Deskto
 
 ### [Waybar](https://github.com/Alexays/Waybar)
 
+### [Eww](https://github.com/elkowar/eww)
+
+* Fedora dependencies I had to install:
+`dnf install cairo-gobject-devel atk-devel gtk3-devel gtk-layer-shell`
+
+(Copy the executable to `.local/bin`)
+
 ### Background and colors with [PyWal](https://github.com/dylanaraps/pywal)
 
 #### TODO:

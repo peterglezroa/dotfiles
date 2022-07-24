@@ -28,16 +28,32 @@ label {
 }
 
 #custom-notification {
-  color: #f38ba8;
+    color: #f38ba8;
 }
 
-#tray {
-}
+#tray { }
 
 #workspaces {
-	background-color: #1e1e2e;
-	border-radius: 15px 0px 0px 15px;
+    background: transparent;
+    color: white;
 }
+
+#workspaces button {
+    background-color: @background;
+    color: white;
+    margin-top: 8px;
+    margin-left: 8px;
+/*    padding: 8px 16px; */
+    border-radius: 6px;
+}
+
+
+/*
+#workspaces button:hover { }
+#workspaces button.focused { }
+#workspaces button.urgent { }
+*/
+
 
 #custom-date {
   color: #89dceb;
@@ -52,27 +68,3 @@ label {
 #pulseaudio {
     color: #a6e3a1;
 }
-
-#workspaces button {
-    padding: 5px 10px;
-    color: #cba6f7;
-}
-
-#workspaces button.focused {
-    color: #0f0f0f;
-    background-color: #c49ec4;
-    border-radius: 15px;
-}
-
-#workspaces button.urgent {
-    color: #0f0f0f;
-    background-color: #9ec3c4;
-    border-radius: 15px;
-}
-
-#workspaces button:hover {
-	background-color: #c49ec4;
-	color: #0f0f0f;
-	border-radius: 15px;
-}
-
