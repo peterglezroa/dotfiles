@@ -6,10 +6,6 @@ set expandtab
 set hlsearch
 set number
 
-" Maps
-let mapleader = ' '
-noremap <Leader><Leader> :noh<cr>
-
 " Map Ctrl-Backspace to delete the previous word in insert mode.
 imap <C-BS> <C-W>
 
@@ -46,6 +42,10 @@ augroup Binary
   au BufWritePost *.bin set nomod | endif
 augroup END
 
+" Maps
+let mapleader = ' '
+noremap <Leader><Leader> :let @/=''<cr>
+
 " Trailing whitespaces
 :highlight ExtraWhitespace ctermbg=red guibg=red
 :match ExtraWhitespace /\s\+$/
@@ -57,6 +57,10 @@ let g:vimtex_view_method = 'zathura'
 let g:vimtex_view_general_viewer = 'okular'
 let g:vimtex_view_general_options = '--unique file:@pdf\#src:@line@tex'
 
+" vim-plug
+" for nvim:
+"   curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+"   https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 call plug#begin("~/.vim/plugged")
   " VIMTEX
   Plug 'lervag/vimtex'
@@ -76,10 +80,6 @@ call plug#begin("~/.vim/plugged")
 
   " pywal
   Plug 'dylanaraps/wal.vim'
-
-  " telescope
-  Plug 'nvim-lua/plenary.nvim'
-  Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.0' }
 call plug#end()
 
 colorscheme wal
