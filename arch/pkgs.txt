@@ -1,1 +1,0 @@
-sudo tree nvim openssh gcc python python-pip git make networkmanager alacritty powerline font-victor-mono otf-font-awesome

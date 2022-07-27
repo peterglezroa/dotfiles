@@ -2,7 +2,7 @@
 Dot files for the configuration of multiple tools that I use in different Desktop enviroments
 
 ### [Alacritty]()
-[ ] `$DOTFILES/alacritty.yml` -> `~/.config/alacritty/alacritty.yml`
+[ ] Copy configuration file `$DOTFILES/alacritty.yml` -> `~/.config/alacritty/alacritty.yml`
 
 ### Background and colors with [PyWal](https://github.com/dylanaraps/pywal)
 
@@ -50,16 +50,13 @@ wal --backend colorthief -i /home/peterglezroa/Pictures/wallpapers/wallpaper_din
 
 ### [Eww](https://github.com/elkowar/eww)
 
-* Fedora dependencies I had to install:
-`dnf install cairo-gobject-devel atk-devel gtk3-devel gtk-layer-shell`
-
-(Copy the executable to `.local/bin`)
+[ ] Build with AUR `https://aur.archlinux.org/eww-wayland-git.git` (wayland) or `https://aur.archlinux.org/eww-git.git` (xorg)
+OR build manually (must copy executable to `~/.local/bin`)
 
 ### NeoVim
 
-[ ] `$DOTFILES/init.vim` -> `~/.config/nvim/init.vim`
-
-* PluginInstaller: [vim-plug](https://github.com/junegunn/vim-plug)
+[ ] Copy configuration file `$DOTFILES/init.vim` -> `~/.config/nvim/init.vim`
+[ ] Install PluginInstaller [vim-plug](https://github.com/junegunn/vim-plug):
 ```bash
 curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
 https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -69,8 +66,10 @@ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 ### [Powerline](https://powerline.readthedocs.io/en/master/index.html)
 
-[ ] `$DOTFILES/powerline/` -> `~/.config/powerline/`
-[ ] Add the following lines to `~/.bashrc`
+[ ] Install from package `powerline powerline-fonts` or with pip `powerline-status`
+[ ] Install Git status with AUR `https://aur.archlinux.org/python-powerline-gitstatus.git` or with pip `powerline-git-status`
+[ ] Copy configuration files `$DOTFILES/powerline/` -> `~/.config/powerline/`
+[ ] Add the following lines to `~/.bashrc`:
 
 ```bash
 # ~/.bashrc
@@ -85,7 +84,7 @@ POWERLINE_BASH_SELECT=1
 
 ### [Z script](https://github.com/rupa/z)
 
-[ ] Add the following lines to `~/.bashrc`
+[ ] Add the following lines to `~/.bashrc`:
 
 ```bash
 # ~/.bashrc
@@ -96,7 +95,7 @@ POWERLINE_BASH_SELECT=1
 
 ### My bashrc aliases
 
-[ ] Add the following lines to `~/.bashrc`
+[ ] Add the following lines to `~/.bashrc`:
 
 ```bash
 # Aliases
@@ -104,3 +103,8 @@ alias nvim="vim"
 alias yeet="git push"
 alias venv="source .venv/bin/activate"
 ```
+
+
+### Arch
+[ ] Base: `sudo tree nvim openssh gcc python python-pip git make networkmanager pulseaudio alacritty`
+[ ] Fonts: `font-victor-mono otf-font-awesome`
