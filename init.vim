@@ -71,9 +71,9 @@ call plug#begin("~/.vim/plugged")
   nmap <C-n> :NERDTreeToggle<CR>
 
   " Markdown
-  Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
-  runtime .vim/markdown_prev.vim
-  nmap <C-b> :MarkdownPreview<CR>
+"  Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
+"  runtime .vim/markdown_prev.vim
+"  nmap <C-b> :MarkdownPreview<CR>
 
   " dart
   Plug 'dart-lang/dart-vim-plugin'
