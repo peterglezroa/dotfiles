@@ -1,0 +1,2 @@
+(defvar ROUNDING 4)
+(defvar MARGIN 3)

@@ -5,6 +5,7 @@ set softtabstop=4
 set expandtab
 set hlsearch
 set number
+set guicursor=a:hor20-Cursor
 
 " Map Ctrl-Backspace to delete the previous word in insert mode.
 imap <C-BS> <C-W>
@@ -15,6 +16,7 @@ autocmd FileType dart setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType scala setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType markdown setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType javascript setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+
 
 " Visual aid
 fun! Toggle80Line()
@@ -80,6 +82,9 @@ call plug#begin("~/.vim/plugged")
 
   " pywal
   Plug 'dylanaraps/wal.vim'
+
+  " support for yuck (eww's configuration language)
+  Plug 'elkowar/yuck.vim'
 call plug#end()
 
 colorscheme wal
