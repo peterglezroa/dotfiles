@@ -26,7 +26,7 @@ wal -R
 # Z script
 . $HOME/.local/bin/z.sh
 
-#
+# alias
 export EDITOR=nvim
 alias vim="nvim"
 alias vi="nvim"

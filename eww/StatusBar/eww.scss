@@ -5,7 +5,7 @@
 }
 
 .statusbar-stats {
-    background-color: rgba(0,0,0,$INACTIVE_OPACITY);
+    background-color: rgba($background, $ACTIVE_OPACITY);
     border-radius: $ROUNDING;
 
     margin-left: 24px;
@@ -18,7 +18,7 @@
 
 .cpu_stats {
     border-radius: $ROUNDING;
-    background-color: rgba(0,0,0,$ACTIVE_OPACITY);
+    background-color: rgba($background,$ACTIVE_OPACITY);
 
     padding: 8px;
 }
@@ -43,7 +43,7 @@
 }
 
 .cpu_stat-val {
-    background-color: red;
+    background-color: rgba($color1, 1);
     border-radius: 4px;
     min-width: 1px;
 }
