@@ -10,12 +10,14 @@ set guicursor=a:hor20-Cursor
 " Map Ctrl-Backspace to delete the previous word in insert mode.
 imap <C-BS> <C-W>
 
-"autocmd FileType c setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
-"autocmd FileType cpp setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+filetype on
+autocmd FileType c setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+autocmd FileType cpp setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType dart setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType scala setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType markdown setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType javascript setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+autocmd FileType typescript setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
 
 " Visual aid
@@ -73,9 +75,9 @@ call plug#begin("~/.vim/plugged")
   nmap <C-n> :NERDTreeToggle<CR>
 
   " Markdown
-"  Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
+  Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug'] }
 "  runtime .vim/markdown_prev.vim
-"  nmap <C-b> :MarkdownPreview<CR>
+  nmap <C-b> :MarkdownPreview<CR>
 
   " dart
   Plug 'dart-lang/dart-vim-plugin'
