@@ -70,8 +70,8 @@ handle_flags(){
 # ================================= FUNCTIONS =================================
 # TODO not working
 function system_install {
-	# TODO different options according to package system
-	sudo apt install -y $@
+    # TODO different options according to package system
+    sudo apt install -y $@
 }
 
 function start_section {
@@ -111,26 +111,31 @@ handle_flags "$@"
 #read -p "Do you wish to utilize symbolic links for better version control? [Y/n]" confirm
 confirm="y"
 if [[ $confirm == "" || $confirm == [yY] ]]; then
-	symbolic_links=1
+    symbolic_links=1
 else
-	symbolic_links=0
+    symbolic_links=0
 fi
 
 
 # ============================= SCRIPTS AND TOOLS =============================
-# TODO
+# TODO:
 # sudo apt-get update
+
+# git
+if ! git --version &> /dev/null; then
+    printf "Installing git...\n"
+fi
 
 # curl
 if ! curl --version &> /dev/null; then
     printf "Installing curl...\n"
-    system_install curl	
+    system_install curl    
 fi
 
 # python
 if ! python3 --version &> /dev/null; then
     printf "Installing python3...\n"
-    system_install python3	
+    system_install python3    
 fi
 
 # ----------------------------------- ZSH -------------------------------------
@@ -155,52 +160,74 @@ fi
 
 # ----------------------------------- NVIM ------------------------------------
 # set neovim or vim configuration file and install plugins
-read -p "Do you wish to install neovim and its plugins? [Y/n] " confirm
+read -p "Do you wish to install neovim? [Y/n] " confirm
 if [[ $confirm == "" || $confirm == [yY] ]]; then
     start_section "NVIM"
 
-	# Check installation
-	if ! vim --version &> /dev/null; then
-		printf "No installation of vim or neovim found! Installing...\n"
-		# TODO: depends on system
-	fi
+    # Check installation
+    if ! vim --version &> /dev/null; then
+        printf "No installation of vim or neovim found! Installing...\n"
+          # TODO: depends on system
+    fi
 
-	vimversion=$(vim --version | head -1)
-	printf "Vim version found: $vimversion\n"
-	case `echo $vimversion | awk '{print $1;}'` in
-		"NVIM")
-			# Copy rcfile
-			if ! [ -d $NVIM_CONFIG_DIR ]; then
-				printf "Configuration folder could not be found. Creating it...\n"
-				mkdir $HOME/.config/nvim
-			fi
-			if [ -f $NVIM_CONFIG_DIR/$NVIM_RC_FILE ]; then
-				printf "File $HOME/.config/nvim/init.vim already exists!\n$MERGE_SCRIPT_MSG"
-            elif [ $symbolic_links ]; then
-				printf "Creating symbolic link to configuration file..."
-				ln -s $PWD/config/init.vim $HOME/.config/nvim/.
-            else
-                asdf
-			fi
+    vimversion=$(vim --version | head -1)
+    printf "Vim version found: $vimversion\n"
 
-			# Install Plugin Manager
-			if ! [ -f $HOME/.local/share/nvim/site/autoload/plug.vim ]; then
-				printf "Installing Plug in manager...\n"
-				curl -flo $HOME/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-					https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-			fi
-			printf "Installing Plugins...\n"
-			vim +'PlugInstall --sync' +qa
-			if [ $? == 0 ]; then
-				printf "Installation successful!\n\n"
-			else
-				printf "Error occurred. Check installation!\n\n"
-			fi
-		;;
-		"VIM")
-			printf "VIM\n"
-		;;
-	esac
+  # Lazy vim
+  read -p "\tDo you wish to install lazyvim plugin extension?" confirm
+  if [[ $confirm == "" || $confirm == [yY] ]]; then
+    # TODO: Check if nvim version is compatible with lazyvim
+
+    # TODO: Check if there is a configuration of vim. If so, do backup
+
+    # Install lazy vim
+    git clone https://github.com/LazyVim/starter ~/.config/nvim
+    rm -rf ~/.config/nvim/git
+
+    # Link .dotfiles configuration to lazyvim configuration
+    rm -r $HOME/.config/nvim/lua/config $HOME/.config/nvim/lua/plugins
+    ln -s $PWD/lazyvim/config $HOME/.config/nvim/lua/config
+    ln -s $PWD/lazyvim/plugins $HOME/.config/nvim/lua/plugins
+  fi
+
+  # Plugins from vim
+  if [[ $confirm != "" && $confirm != [] ]]; then
+      case `echo $vimversion | awk '{print $1;}'` in
+          "NVIM")
+              # Copy rcfile
+              if ! [ -d $NVIM_CONFIG_DIR ]; then
+                  printf "Configuration folder could not be found. Creating it...\n"
+                  mkdir $HOME/.config/nvim
+              fi
+              if [ -f $NVIM_CONFIG_DIR/$NVIM_RC_FILE ]; then
+                  printf "File $HOME/.config/nvim/init.vim already exists!\n$MERGE_SCRIPT_MSG"
+              elif [ $symbolic_links ]; then
+                  printf "Creating symbolic link to configuration file..."
+                  ln -s $PWD/config/init.vim $HOME/.config/nvim/.
+              else
+                  asdf
+              fi
+
+              # Install Plugin Manager
+              if ! [ -f $HOME/.local/share/nvim/site/autoload/plug.vim ]; then
+                  printf "Installing Plug in manager...\n"
+                  curl -flo $HOME/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+                      https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+              fi
+              printf "Installing Plugins...\n"
+              vim +'PlugInstall --sync' +qa
+              if [ $? == 0 ]; then
+                  printf "Installation successful!\n\n"
+              else
+                  printf "Error occurred. Check installation!\n\n"
+              fi
+          ;;
+          "VIM")
+              printf "VIM\n"
+          ;;
+      esac
+  fi
+
 fi
 
 # --------------------------------- Z SCRIPT ----------------------------------
@@ -222,14 +249,14 @@ read -p "Do you wish to install powerline? [Y/n] " confirm
 if [[ $confirm == "" || $confirm == [yY] ]]; then
     start_section "POWERLINE"
 
-	# Check installation TODO: depends on package per distribution
-	if powerline-status --version &> /dev/null; then
-		printf "Powerline installation found!\n"
-		# TODO: depends on system
+    # Check installation TODO: depends on package per distribution
+    if powerline-status --version &> /dev/null; then
+        printf "Powerline installation found!\n"
+        # TODO: depends on system
     else
         printf "Installing Powerline using pip...\n"
         #pip3 install powerline-status
-	fi
+    fi
 
     # Check fonts
     # TODO
