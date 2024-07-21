@@ -1,8 +1,9 @@
 require("config.lazy")
 require("config.keymaps")
-
 require("config.options")
 
+require("lualine").setup()
+require("pywal").setup()
 
 -- PLUGIN EXAMPLE
 -- return {

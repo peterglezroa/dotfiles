@@ -32,6 +32,6 @@ return {
         end
     },
     keys = {
-        {"<leader>e", ":NvimTreeToggle<CR>", { silent = true }}
+        {"<C-n>", ":NvimTreeToggle<CR>", { silent = true }}
     }
 }

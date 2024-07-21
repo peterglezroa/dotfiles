@@ -11,7 +11,7 @@ vim.o.tabstop = 2
 vim.o.shiftwidth = 2
 
 vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
-    pattern = {"*.py"},
+    pattern = {"*.py", "*.lua"},
     callback = function()
         vim.bo.tabstop=4
         vim.bo.shiftwidth=4
