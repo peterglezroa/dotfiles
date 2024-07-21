@@ -1,4 +1,6 @@
+" Filetypes
 filetype plugin on
+filetype on
 set tabstop=4
 set shiftwidth=4
 set softtabstop=4
@@ -6,11 +8,8 @@ set expandtab
 set hlsearch
 set number
 set guicursor=a:hor20-Cursor
+set notermguicolors
 
-" Map Ctrl-Backspace to delete the previous word in insert mode.
-imap <C-BS> <C-W>
-
-filetype on
 autocmd FileType c setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType cpp setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType dart setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
@@ -18,6 +17,11 @@ autocmd FileType scala setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType markdown setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType javascript setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 autocmd FileType typescript setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+autocmd FileType sh setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+
+" Maps
+let mapleader = ' '
+noremap <Leader><Leader> :let @/=''<cr>
 
 
 " Visual aid
@@ -45,10 +49,6 @@ augroup Binary
   au BufWritePost *.bin if &bin | %!xxd
   au BufWritePost *.bin set nomod | endif
 augroup END
-
-" Maps
-let mapleader = ' '
-noremap <Leader><Leader> :let @/=''<cr>
 
 " Trailing whitespaces
 :highlight ExtraWhitespace ctermbg=red guibg=red

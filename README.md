@@ -7,6 +7,7 @@ Dot files for the configuration of multiple tools that I use in different Deskto
 ### Background and colors with [PyWal](https://github.com/dylanaraps/pywal)
 
 #### TODO:
+[ ] Append gitconfig!!
 [ ] Terminal theme
 [ ] Vim theme
 [ ] Rofi
