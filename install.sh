@@ -69,6 +69,17 @@ handle_flags(){
   done
 }
 
+# ================================= CONSTANTS =================================
+tabs="    "
+#VIM_CONFIGURATION_DIRECTORY="$HOME/.config/nvim"
+#VIM_RC_FILE="init.vim"
+NVIM_CONFIG_DIR="$HOME/.config/nvim"
+
+MERGE_SCRIPT_MSG="To compare and merge configuration files use TODO script\n"
+
+# Verbose debug
+printf "\$HOME: $HOME\n"
+
 # ================================= FUNCTIONS =================================
 # TODO not working
 function system_install {
@@ -89,16 +100,17 @@ function start_section {
   printf "\n"
 }
 
-# ================================= CONSTANTS =================================
-tabs="    "
-#VIM_CONFIGURATION_DIRECTORY="$HOME/.config/nvim"
-#VIM_RC_FILE="init.vim"
-NVIM_CONFIG_DIR="$HOME/.config/nvim"
-
-MERGE_SCRIPT_MSG="To compare and merge configuration files use TODO script\n"
-
-# Verbose debug
-printf "\$HOME: $HOME\n"
+function set_config {
+  # TODO error handling: no arguments
+  # TODO check file exists
+  if [ $symbolic_links == 1 ]; then
+    printf "Creating symbolic link $2->$2...\n"
+    ln -s $1 $2
+  else
+    printf "Copying configuration $1 to $2...\n"
+    cp -r $1 $2
+  fi
+}
 
 # =============================================================================
 #                               MAIN EXECUTION
@@ -126,6 +138,7 @@ fi
 # git
 if ! git --version &> /dev/null; then
   printf "Installing git...\n"
+  system_install git
 fi
 
 # curl
@@ -141,98 +154,93 @@ if ! python3 --version &> /dev/null; then
 fi
 
 # ----------------------------------- ZSH -------------------------------------
-read -p "Do you wish to install and use zsh as default shell? [Y/n] " confirm
-if [[ $confirm == "" || $confirm == [yY] ]]; then
-  start_section "ZSH"
-  if ! zsh --version &> /dev/null; then
+if ! zsh --version &> /dev/null; then
+  read -p "Do you wish to install and use zsh as default shell? [Y/n] " confirm
+  if [[ $confirm == "" || $confirm == [yY] ]]; then
+    start_section "ZSH"
+
     printf "Installing zsh...\n"
     system_install zsh
+
+    printf "Working with `zsh --version`\n"
+    if ! [ $SHELL == `which zsh` ]; then
+      printf "$USER Not using zsh\n"
+#      sudo chsh -s $(which zsh) $USER # TODO: using sudo
+    fi
   fi
-  printf "Working with `zsh --version`\n"
-  if ! [ $SHELL == `which zsh` ]; then
-    printf "$USER Not using zsh\n"
-    sudo chsh -s $(which zsh) $USER #TODO
-  fi
+else
+  printf "zsh installation found! "
+  zsh --version
+  # TODO: Ask if u want to update zsh profile to use this one
+  # TODO: Compare zsh profile to the current configuration
 fi
 
 # ---------------------------------- KITTY ------------------------------------
-#read -p "Do you wish to install kitty? [Y/n] " confirm && \
-#    [[ $confirm == "" || $confirm == [yY] ]] && \
-#    system_install kitty
-
-# ----------------------------------- NVIM ------------------------------------
-# set neovim or vim configuration file and install plugins
-read -p "Do you wish to install neovim or vim? [NEOVIM/vim/n] " confirm
-if [[ $confirm == "" || $confirm == "NEOVIM" || $confirm == "neovim" ]]; then
-  start_section "NVIM"
-
-  # Check installation
-  if ! nvim --version &> /dev/null; then
-    printf "No installation of neovim found! Installing...\n"
-      # TODO: depends on system
-  fi
-
-  vimversion=$(nvim --version | head -1)
-  printf "Vim version found: $vimversion\n"
-
-  # Lazy vim
-  read -p "${tabs}Do you wish to use the .lua (lazy.vim) or the .vim (Plug) version? [y/N]" confirm
-  if [[ $confirm == [yY] ]]; then
-    # TODO: Check if there is a configuration of vim. If so, do backup
-
-    # Install lazy vim
-    git clone https://github.com/LazyVim/starter ~/.config/nvim
-    rm -rf ~/.config/nvim/git
-
-    # Link .dotfiles configuration to lazyvim configuration
-    rm -r $HOME/.config/nvim/lua/config $HOME/.config/nvim/lua/plugins
-    ln -s $PWD/lazyvim/config $HOME/.config/nvim/lua/config
-    ln -s $PWD/lazyvim/plugins $HOME/.config/nvim/lua/plugins
-
-  # Ask about installing plugins if lazyvim was not selected
-  else
-    read -p "${tabs}Do you wish to install other nvim plugins uzing lazy package manager? [Y/n]" confirm
-  fi
-
-  # Plugins from vim
+if ! kitty --version &> /dev/null; then
+  read -p "Do you wish to install kitty terminal? [Y/n] " confirm
   if [[ $confirm == "" || $confirm == [yY] ]]; then
-    # Confirm to use either lua or vim
+    start_section "Kitty"
+    printf "${tabs}Installing kitty....\n"
+    system_install kitty
 
-    echo "${tabs}Installing neovim plugins..."
-    # Copy rcfile
-    if ! [ -d $NVIM_CONFIG_DIR ]; then
-      printf "${tabs}Configuration folder could not be found. Creating it...\n"
-      mkdir $HOME/.config/nvim
-    fi
-
-    if [ -e $NVIM_CONFIG_DIR/$NVIM_RC_FILE ]; then
-      printf "${tabs}File $HOME/.config/nvim/$NVIM_RC_FILE already exists!\n$MERGE_SCRIPT_MSG"
-    elif [ $symbolic_links ]; then
-      printf "${tabs}Creating symbolic link to configuration file...\n"
-      ln -s $PWD/config/vim/$NVIM_RC_FILE $HOME/.config/nvim/.
-    else
-      printf "${tabs}Coping configuration file..."
-      cp $PWD/config/vim/$NVIM_RC_FILE $HOME/.config/nvim/.
-    fi
-
-    # Install Plugin Manager
-    if ! [ -f $HOME/.local/share/nvim/site/autoload/plug.vim ]; then
-      printf "${tabs}Installing Plug in manager...\n"
-      curl -flo $HOME/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-          https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    fi
-    printf "${tabs}Installing Plugins...\n"
-    nvim +'PlugInstall --sync' +qa
-    if [ $? == 0 ]; then
-      printf "${tabs}Installation successful!\n\n"
-    else
-      printf "${tabs}Error occurred. Check installation!\n\n"
-    fi
+    printf "${tabs}Setting kitty's configuration file...\n"
+    set_config $PWD/kitty $HOME/.config/kitty
   fi
-
-elif [[ $confirm == "" || $confirm == "VIM" || $confirm == "vim" ]]; then
-  printf "I'm so sorry... Still under construction!\n"
+else
+  printf "Kitty installation found! "
+  kitty --version
+  # TODO: Check if a configuration already exists
+    # TODO: Ask if we want to override/merge/ignore the configuration
+  # TODO: else - ask if we want to set the configuration
 fi
+
+# --------------------------------- NVIM/VIM -----------------------------------
+if ! nvim --version &> /dev/null; then
+  read -p "Do you wish to install neovim? [Y/n] " confirm
+  if [[ $confirm == "" || $confirm == [yY] ]]; then
+    using_nvim=true
+    start_section "NVIM"
+    # TODO: install nvim
+
+    read -p "Do you wish to set up this nvim configuration? [Y/n] " confirm
+    if [[ $confirm == "" || $confirm == [yY] ]]; then
+      set_config $PWD/nvim $HOME/.config/nvim
+    fi
+  else
+    using_nvim=false
+  fi
+else
+  printf "Nvim installation found! "
+  nvim --version
+  using_nvim=true
+  # TODO: check if there is a configuration
+    # TODO: Ask if we want to override/merge/ignore the configuration
+  # TODO: else - ask if we want to set this configuration
+fi
+
+# TODO: currently not working
+#if [[ !$(vim --version &> /dev/null) && !$using_nvim ]]; then
+#  read -p "Do you wish to install vim? [Y/n] " confirm
+#  if [[ $confirm == "" || $confirm == [yY] ]]; then
+#    start_section "VIM"
+#    # TODO: install vim
+#
+#    read -p "Do you wish to setup this vim configuration [Y/n] " confirm
+#    if ! [ -f $HOME/.config/vim/autoload/plug.vim ]; then
+#      printf "${tabs}Installing Plug in manager...\n"
+#      curl -flo $HOME/.config/vim/autoload/plug.vim --create-dirs \
+#          https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+#      set_config $PWD/vim/init.vim $HOME/.config/vim/.
+#      # TODO: run plug install
+#    fi
+#  fi
+#else
+#  printf "Vim installation found! "
+#  vim --version
+#  # TODO: check if there is a configuration
+#    # TODO: Ask if we want to override/merge/ignore the configuration
+#  # TODO: else - ask if we want to set this configuration
+#fi
 
 # --------------------------------- Z SCRIPT ----------------------------------
 if [ -f $HOME/.local/bin/z.sh ]; then
@@ -251,12 +259,13 @@ read -p "Do you wish to append git aliases? [Y/n] " confirm
 if [[ $confirm == "" || $confirm == [yY] ]]; then
   if [ -f $HOME/.gitconfig ]; then
     echo "Appending to $HOME/.gitconfig..."
-    cat $PWD/config/gitconfig >> $HOME/.gitconfig
+    # TODO: merge config
+#    cat $PWD/config/gitconfig >> $HOME/.gitconfig
   elif [ -e $HOME/.gitconfig ]; then
     echo "$HOME/.gitconfig file exists but make sure it is a file!"
   else
     echo "Creating $HOME/.gitconfig file..."
-    cp $PWD/config/gitconfig $HOME/.gitconfig
+    set_config $PWD/config/gitconfig $HOME/.gitconfig
   fi
 fi
 
@@ -267,68 +276,54 @@ fi
 # ~/.local/share/fonts
 
 # ------------------------------ POWERLINE ------------------------------------
-read -p "Do you wish to install powerline? [Y/n] " confirm
-if [[ $confirm == "" || $confirm == [yY] ]]; then
-  start_section "POWERLINE"
+# TODO: currently not working
+#if ! powerline-status --version &> /dev/null; then
+#  read -p "Do you wish to install powerline? [Y/n] " confirm
+#  if [[ $confirm == "" || $confirm == [yY] ]]; then
+#    start_section "POWERLINE"
+#
+#    # Check installation TODO: depends on package per distribution
+#      # TODO: depends on system
+#    #pip3 install powerline-status
+#
+#    # Add config files
+#    # TODO powerline config according to shell (zsh has right)
+#    set_config $PWD/powerline $HOME/.config/powerline
+#  fi
+#else
+#  printf "Powerline installation found! "
+#  powerline-status --version
+#  # TODO: check if there is a configuration
+#    # TODO: Ask if we want to override/merge/ignore the configuration
+#  # TODO: else - ask if we want to set this configuration
+#fi
 
-  # Check installation TODO: depends on package per distribution
-  if powerline-status --version &> /dev/null; then
-    printf "Powerline installation found!\n"
-    # TODO: depends on system
-  else
-    printf "Installing Powerline using pip...\n"
-    #pip3 install powerline-status
-  fi
-
-  # Check fonts
-  # TODO
-
-  # Add config files
-  # TODO powerline config according to shell (zsh has right)
-  if [ -e $HOME/.config/powerline/ ]; then
-    printf "Powerline configuration folder found at $HOME/.config/powerline!\n$MERGE_SCRIPT_MSG"
-  elif [ $symbolic_links ]; then
-    printf "Creating symbolic link to configuration folder..."
-    ln -s $PWD/powerline $HOME/.config/powerline
-  else
-    printf "Coping configuration folder..."
-    cp -r $PWD/powerline $HOME/.config/powerline
-  fi
-fi
+# ------------------------------ Wallpapers -----------------------------------
+# TODO: currently not working
+#if [ -e $WALLPAPER_DIR ]; then
+#  read -p "Do you wish to update the wallpapers directory with saved wallpapers? [Y/n] " confirm
+#  if [[ $confirm == "" || $confirm == [yY] ]]; then
+#    start_section "WALLPAPERS"
+#    set_config $PWD/resource/images/wallpapers $WALLPAPER_DIR
+#  fi
+#
+#    # TODO use google drive instead of github
+#    # TODO
+#else
+#  printf "Found wallpaper directory at $WALLPAPER_DIR\n"
+##  read -p "Do you wish to update wallpaper options? [Y/n] " confirm
+#  # TODO: update wallpapers
+#fi
 
 # ---------------------------------- PYWAL ------------------------------------
-if wal -v &> /dev/null; then
-  printf "Pywal installation found!\n"
-else
+if ! wal -v &> /dev/null; then
   # TODO SHELL returns error when saying no
   read -p "Do you wish to install pywall? [Y/n] " confirm &&\
     [[ $confirm == "" || $confirm == [yY] ]] && \
     sudo pip3 install pywal
+else
+  printf "Pywal installation found!"
+  wal -v
 fi
-
-# ------------------------------ Wallpapers -----------------------------------
-read -p "Do you wish to update the wallpapers directory with saved wallpapers? [Y/n] " confirm
-if [[ $confirm == "" || $confirm == [yY] ]]; then
-  start_section "WALLPAPERS"
-  # TODO use google drive instead of github
-  if [ -e $WALLPAPER_DIR ]; then
-    printf "Found wallpaper directory at $WALLPAPER_DIR\n"
-    read -p "Do you wish to update wallpaper options? [Y/n] " confirm
-    #if [[ $confirm == "" || $confirm == [yY] ]]; then
-      # TODO
-    #fi
-  elif [ $symbolic_links  ]; then
-    printf "Creating symbolic link to wallpaper directory...\n"
-    ln -s $PWD/resources/images/wallpapers $WALLPAPER_DIR
-  else
-    printf "Coping wallpaper directory...\n"
-    cp -r $PWD/resources/images/wallpapers $WALLPAPER_DIR
-  fi
-
-  # TODO Check if pywal and then link to wallpaper
-  # TODO pywal on startup
-
-  printf "\n\n"
-fi
-
-# ------------------------------ GNOME CORNERS --------------------------------
+# TODO Check if pywal and then link to wallpaper
+# TODO pywal on startup

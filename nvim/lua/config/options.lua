@@ -7,14 +7,14 @@ vim.o.termguicolors = true
 vim.o.expandtab = true
 vim.o.smartindent = true
 
-vim.o.tabstop = 4
-vim.o.shiftwidth = 4
+vim.o.tabstop = 2
+vim.o.shiftwidth = 2
 
 vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
-    pattern = {"*.c", "*.cpp", "*.h", "*.js", "*.ts", "*.html"},
+    pattern = {"*.py"},
     callback = function()
-        vim.bo.tabstop=2
-        vim.bo.shiftwidth=2
+        vim.bo.tabstop=4
+        vim.bo.shiftwidth=4
     end
 })
 
