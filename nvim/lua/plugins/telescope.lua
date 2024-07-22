@@ -11,7 +11,11 @@ return {
 
             -- Search file
             { "<leader>ff", telescope.find_files,
-              desc = "Find Files" },
+              desc = "Find files" },
+
+            -- Search file from home
+            { "<leader>fF", function() telescope.find_files({cwd=os.getenv("HOME")}) end,
+              desc = "Find files starting the search from home" },
 
             -- Search with grep
             { "<leader>fg", telescope.live_grep,
