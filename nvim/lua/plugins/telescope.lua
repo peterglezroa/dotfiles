@@ -7,7 +7,8 @@ return {
 
         return {
             -- File tree
-            {"<leader>e", ext.file_browser.file_browser},
+            {"<leader>e", function() ext.file_browser.file_browser({initial_mode="insert"}) end,
+              desc = "File browser"},
 
             -- Search file
             { "<leader>ff", telescope.find_files,
@@ -57,7 +58,7 @@ return {
     end, 
     opts = {
         defaults = {
-            initial_mode = "normal",
+--            initial_mode = "normal",
             sorting_strategy = "ascending",
             layout_strategy = "flex",
             layout_config = {
