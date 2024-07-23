@@ -1,0 +1,56 @@
+# Lines configured by zsh-newuser-install
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=1000
+setopt beep
+bindkey -v
+# End of lines configured by zsh-newuser-install
+# The following lines were added by compinstall
+zstyle :compinstall filename '/home/peterglezroa/.zshrc'
+
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
+
+# bin
+path+=('/home/peterglezroa/.local/bin')
+export PATH
+
+# Powerline
+if [ -f /usr/share/powerline/bindings/bash/powerline.sh ]; then
+    powerline-daemon -q
+    . /usr/share/powerline/bindings/zsh/powerline.zsh
+fi
+
+# Pywal
+if wal -v &> /dev/null; then
+    if [[ $XDG_CURRENT_DESKTOP == *"GNOME"* ]]; then
+        cur_wal="'file://$(cat ~/.cache/wal/wal)'"
+        if [[ $(gsettings get org.gnome.desktop.background picture-uri) != $cur_wal ]]; then
+            gsettings set org.gnome.desktop.background picture-uri $cur_wal
+        fi
+
+        if [[ $(gsettings get org.gnome.desktop.background picture-uri-dark) != $cur_wal ]]; then
+            gsettings set org.gnome.desktop.background picture-uri-dark $cur_wal
+        fi
+    fi
+    wal -R
+fi
+
+# Z script
+if [ -f $HOME/.local/bin/z.sh ]; then
+    . $HOME/.local/bin/z.sh
+fi
+
+# alias
+export EDITOR=nvim
+alias vim="nvim"
+alias vi="nvim"
+alias yeet="git push"
+alias venv="source .venv/bin/activate"
+
+export XDG_DATA_DIRS="$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:/home/peterglezroa/.local/share/flatpak/exports/share"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

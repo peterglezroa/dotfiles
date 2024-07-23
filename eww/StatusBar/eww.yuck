@@ -1,0 +1,107 @@
+(include "./Consts.yuck")
+
+(defpoll time :interval "1s" "date '+%I:%M'")
+(defpoll date :interval "1s" "date '+%a %d, %B'")
+
+(defwindow statusbar
+  :monitor 0
+  :geometry (geometry :x "0%"
+                      :width "100%"
+                      :height "30px"
+                      :anchor "center top")
+  :stacking "overlay"
+  :exclusive true
+  :focusable false
+  :namespace "statusbar"
+
+  (stats :text "TODO: wtf borrar")
+)
+
+(defwidget stats [?text]
+  (box
+    :class "statusbar-stats"
+    :orientation "horizontal"
+    :halign "start"
+    :vexpand true
+    :valign "center"
+    :visible "true"
+    "Average ${round(EWW_CPU.avg,2)}"
+  )
+)
+
+(defwidget cpu_stats_revealer [?text]
+  (revealer
+    :transition "slidedown"
+    :duration "500ms"
+    :reveal true
+  )
+)
+
+(defwindow cpu_stats
+    :monitor 0
+    :geometry (geometry :y "16px"
+                        :x "24px"
+                        :width "200px"
+                        :anchor "top left")
+    :stacking "overlay"
+    :exclusive false
+    :focusable false
+    :namespace "cpu_stats"
+
+    (box
+      :class "cpu_stats_wrapper"
+      :orientation "vertical"
+      :halign "start"
+      :hexpand false
+      :valign "start"
+      :visible "true"
+      (for core in "${EWW_CPU.cores}"
+        (cpu_stat :stat "${core}")
+      )
+    )
+)
+
+(defwidget cpu_stat [stat]
+  (box
+    :class "cpu_stat"
+    :visible "true"
+    :orientation "horizontal"
+    :halign "start"
+    :hexpand false
+    :valign "center"
+    :space-evenly false
+
+    (box
+      :class "cpu_stat-label"
+      :orientation "horizontal"
+      :halign "start"
+      :hexpand false
+      :width 50
+      :valign "center"
+      :visible "true"
+      "${stat.core}"
+    )
+
+    (box
+      :class "cpu_stat-container"
+      :orientation "horizontal"
+      :valign "center"
+      :width 100
+      (box
+        :class "cpu_stat-val"
+        :orientation "horizontal"
+        :valign "center"
+        :halign "start"
+        :width "${round(stat.usage,0) * 2}"
+        :height 20
+      )
+    )
+  )
+)
+
+;;(defvar my-json "[1, 2, 3]")
+;;
+;;; Then, inside your widget, you can use (box (for entry in my-json
+;;    (button :onclick "notify-send 'click' 'button ${entry}'"
+;;      entry)))
+;;
