@@ -7,53 +7,60 @@ return {
 
         return {
             -- File tree
-            {"<leader>e", function() ext.file_browser.file_browser({initial_mode="insert"}) end,
-              desc = "File browser"},
+            {"<leader>e",
+                function()
+                    ext.file_browser.file_browser({initial_mode="insert"})
+                end,
+                desc = "File browser"},
 
             -- Search file
-            { "<leader>ff", telescope.find_files,
-              desc = "Find files" },
+            { "<leader>ff",
+                function() telescope.find_files({ hidden=true }) end,
+                desc = "Find files" },
 
             -- Search file from home
-            { "<leader>fF", function() telescope.find_files({cwd=os.getenv("HOME")}) end,
-              desc = "Find files starting the search from home" },
+            { "<leader>fF",
+                function()
+                    telescope.find_files({cwd=os.getenv("HOME"), hidden=true})
+                end,
+                desc = "Find files starting the search from home" },
 
             -- Search with grep
             { "<leader>fg", telescope.live_grep,
-              desc = "Search files contents with grep" },
+                desc = "Search files contents with grep" },
 
             -- Search in buffers
             { "<leader>fb", telescope.buffers,
-              desc = "Search on buffers" },
+                desc = "Search on buffers" },
 
             -- Search treesitter file
             { "<leader>f/", telescope.treesitter,
-              desc = "Search treesitter on file" },
+                desc = "Search treesitter on file" },
 
             -- Search in help
             { "<leader>fh", telescope.help_tags,
-              desc = "Search help" },
+                desc = "Search help" },
 
             -- Search in help
             { "<leader>fm", telescope.man_pages,
-              desc = "Search in manuals" },
+                desc = "Search in manuals" },
 
             -- GIT
             -- Search in git commits
             { "<leader>gc", telescope.git_commits,
-              desc = "Display git commits" },
+                desc = "Display git commits" },
 
             -- Git branches
             { "<leader>gb", telescope.git_branches,
-              desc = "Display git branches" },
+                desc = "Display git branches" },
 
             -- Git status
             { "<leader>gs", telescope.git_status,
-              desc = "Display git status" },
+                desc = "Display git status" },
 
             -- Diagnostics
             { "<leader>fd", telescope.diagnostics,
-              desc = "Display code diagnostics" },
+                desc = "Display code diagnostics" },
         }
     end, 
     opts = {
