@@ -2,6 +2,8 @@ require("config.lazy")
 require("config.keymaps")
 require("config.options")
 
+--vim.cmd [[colorscheme lushwal]]
+
 require("lualine").setup()
 require("pywal").setup()
 
@@ -16,3 +18,6 @@ require("pywal").setup()
             -- too complicated >.<
         -- end
     -- } <- puglins options
+    -- config = function() <- function that is executed after the plugin loads
+        -- bla bla
+    -- end

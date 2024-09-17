@@ -3,15 +3,24 @@ return {
     dependencies = { "nvim-lua/plenary.nvim" },
     keys = function()
         local telescope = require("telescope.builtin")
+        local utils = require("telescope.utils")
         local ext = require("telescope").extensions
 
         return {
             -- File tree
             {"<leader>e",
                 function()
-                    ext.file_browser.file_browser({initial_mode="insert"})
+                    ext.file_browser.file_browser({
+                        initial_mode="normal",
+                        cwd=utils.buffer_dir()
+                    })
                 end,
                 desc = "File browser"},
+            {"<leader>E",
+                function()
+                    ext.file_browser.file_browser({initial_mode="normal"})
+                end,
+                desc = "File browser from root"},
 
             -- Search file
             { "<leader>ff",

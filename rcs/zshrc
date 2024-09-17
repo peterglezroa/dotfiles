@@ -17,13 +17,17 @@ path+=('/home/peterglezroa/.local/bin')
 export PATH
 
 # Powerline
-if [ -f /usr/share/powerline/bindings/bash/powerline.sh ]; then
+isSsh=$(who | awk '/[0-9]/{print $5}' | grep -P "([0-9]+\.){3}")
+if [[ $? != 0 && -f /usr/share/powerline/bindings/bash/powerline.sh ]]; then
     powerline-daemon -q
     . /usr/share/powerline/bindings/zsh/powerline.zsh
+else
+  PS1="$(whoami)@$(hostname) > "
 fi
 
 # Pywal
 if wal -v &> /dev/null; then
+    # Update background when in desktop mode
     if [[ $XDG_CURRENT_DESKTOP == *"GNOME"* ]]; then
         cur_wal="'file://$(cat ~/.cache/wal/wal)'"
         if [[ $(gsettings get org.gnome.desktop.background picture-uri) != $cur_wal ]]; then
