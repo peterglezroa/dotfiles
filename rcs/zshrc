@@ -22,7 +22,7 @@ if [[ $? != 0 && -f /usr/share/powerline/bindings/bash/powerline.sh ]]; then
     powerline-daemon -q
     . /usr/share/powerline/bindings/zsh/powerline.zsh
 else
-  PS1="$(whoami)@$(hostname) > "
+    PS1="$(whoami)@$(hostname) > "
 fi
 
 # Pywal

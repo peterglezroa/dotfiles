@@ -1,18 +1,23 @@
 #!/bin/bash
 
 # ================================= TODO LIST =================================
+# REFACTORS
+# - Remove sudo calls
 # - Search for a better option than $PWD when doing ln
-# - Having sudo calls
+# - functions per install? More readable code?
+# FEATURES
+# - PopOS config file and shortcuts
 # - Script to login to google for drive etc (pop up)
-# - Install icloud
-# - Warn in case using root as user (home will not work)
+# - Install icloud?
 # - Add install all
-# - Add install package
+# - Add install specific package
 # - ln flag
+# - force installation for pip system install
+# BUGS
+# - Warn in case using root as user (home will not work)
 # - wallpaper dir depends on distro
 # - checking with -e will tell if file/dir exists but we want to let the user
-# - know if it is something not correct
-# - functions per install? More readable
+# know if it is something not correct
 
 # =============================== HANDLE FLAGS ================================
 usage() {
@@ -47,6 +52,10 @@ handle_flags(){
 
             -Y)
                 install_all=true
+                ;;
+
+            -f)
+                force_install=true
                 ;;
 
             -l)
@@ -87,9 +96,24 @@ system_install() {
     sudo apt install -y $@
 }
 
+pip_user_install() {
+    sudo pip3 install --user --break-system-packages $1
+}
+
 pip_system_install() {
     # TODO: warning about possibly breaking the system
-    sudo pip3 install $1 --break-system-packages
+    sudo apt-get install python3-$1
+    if [ $? != 0 ]; then
+        if [[ $force_install = true ]]; then
+            confirm="Y"
+        else
+            read -p "Do you wish to force install $1? [y/N] " confirm
+        fi
+
+        if [[ $confirm == [yY] ]]; then
+            sudo pip3 install $1 --break-system-packages
+        fi
+    fi
 }
 
 start_section() {
@@ -103,6 +127,12 @@ start_section() {
     fi
     printf "=%.s" $(eval "echo {1.."$(($n))"}")
     printf "\n"
+}
+
+end_section() {
+    printf "\n"
+    printf "=%.s" {1..79}
+    printf "\n\n"
 }
 
 set_config() {
@@ -159,26 +189,28 @@ if ! python3 --version &> /dev/null; then
 fi
 
 # ----------------------------------- ZSH -------------------------------------
-if ! zsh --version &> /dev/null; then
-    read -p "Do you wish to install and use zsh as default shell? [Y/n] " confirm
-    if [[ $confirm == "" || $confirm == [yY] ]]; then
-        start_section "ZSH"
-
-        printf "Installing zsh...\n"
-        system_install zsh
-
-        printf "Working with `zsh --version`\n"
-        if ! [ $SHELL == `which zsh` ]; then
-            printf "$USER Not using zsh\n"
-#            sudo chsh -s $(which zsh) $USER # TODO: using sudo
-        fi
-    fi
-else
-    printf "zsh installation found! "
-    zsh --version
-    # TODO: Ask if u want to update zsh profile to use this one
-    # TODO: Compare zsh profile to the current configuration
-fi
+#if ! zsh --version &> /dev/null; then
+#    read -p "Do you wish to install and use zsh as default shell? [Y/n] " confirm
+#    if [[ $confirm == "" || $confirm == [yY] ]]; then
+#        start_section "ZSH"
+#
+#        printf "Installing zsh...\n"
+#        system_install zsh
+#
+#        printf "Working with `zsh --version`\n"
+#        if ! [ $SHELL == `which zsh` ]; then
+#            printf "$USER Not using zsh\n"
+##            sudo chsh -s $(which zsh) $USER # TODO: using sudo
+#        fi
+#
+#        end_section
+#    fi
+#else
+#    printf "zsh installation found! "
+#    zsh --version
+#    # TODO: Ask if u want to update zsh profile to use this one
+#    # TODO: Compare zsh profile to the current configuration
+#fi
 
 # ---------------------------------- KITTY ------------------------------------
 if ! kitty --version &> /dev/null; then
@@ -190,6 +222,8 @@ if ! kitty --version &> /dev/null; then
 
         printf "${tabs}Setting kitty's configuration file...\n"
         set_config $PWD/kitty $HOME/.config/kitty
+
+        end_section
     fi
 else
     printf "Kitty installation found! "
@@ -211,6 +245,7 @@ if ! nvim --version &> /dev/null; then
         if [[ $confirm == "" || $confirm == [yY] ]]; then
             set_config $PWD/nvim $HOME/.config/nvim
         fi
+        end_section
     else
         using_nvim=false
     fi
@@ -221,10 +256,10 @@ else
     # TODO: check if there is a configuration
         # TODO: Ask if we want to override/merge/ignore the configuration
     # TODO: else - ask if we want to set this configuration
-    read -p "Do you wish to set up this nvim configuration? [Y/n] " confirm
-    if [[ $confirm == "" || $confirm == [yY] ]]; then
-        set_config $PWD/nvim $HOME/.config/nvim
-    fi
+#    read -p "Do you wish to set up this nvim configuration? [Y/n] " confirm
+#    if [[ $confirm == "" || $confirm == [yY] ]]; then
+#        set_config $PWD/nvim $HOME/.config/nvim
+#    fi
 fi
 
 # TODO: currently not working
@@ -260,6 +295,7 @@ else
         start_section "Z SCRIPT"
         wget "https://raw.githubusercontent.com/rupa/z/master/z.sh" \
             -O $HOME/.local/bin/z.sh
+        end_section
     fi
 fi
 
@@ -283,46 +319,60 @@ fi
 # ---------------------------------- FONTS ------------------------------------
 # TODO: curl install Proto Nerd Fonts https://www.nerdfonts.com/font-downloads
 # ~/.local/share/fonts
+# TODO: refresh fonts
+# fc-cache -fv
+# TODO: check font installation
+# fc-list | grep "Proto Nerd Font" | wc -l
 
 # ------------------------------ POWERLINE ------------------------------------
 # TODO: currently not working
-#if ! powerline-status --version &> /dev/null; then
-#    read -p "Do you wish to install powerline? [Y/n] " confirm
-#    if [[ $confirm == "" || $confirm == [yY] ]]; then
-#        start_section "POWERLINE"
-#
-#        # Check installation TODO: depends on package per distribution
-#            # TODO: depends on system
-#        #pip3 install powerline-status
-#
-#        # Add config files
-#        # TODO powerline config according to shell (zsh has right)
-#        set_config $PWD/powerline $HOME/.config/powerline
-#    fi
-#else
-#    printf "Powerline installation found! "
-#    powerline-status --version
-#    # TODO: check if there is a configuration
-#        # TODO: Ask if we want to override/merge/ignore the configuration
-#    # TODO: else - ask if we want to set this configuration
-#fi
+if ! powerline-daemon --version &> /dev/null; then
+    read -p "Do you wish to install powerline? [Y/n] " confirm
+    if [[ $confirm == "" || $confirm == [yY] ]]; then
+        start_section "POWERLINE"
 
-# ------------------------------ Wallpapers -----------------------------------
+        # Check installation TODO: depends on package per distribution
+            # TODO: depends on system
+#        pip_user_install powerline-status
+        system_install powerline
+
+        # Add config files
+        # TODO powerline config according to shell (zsh has right)
+        # TODO merge powerline config?
+        if powerline-daemon --version &> /dev/null; then
+            # TODO: Only works on debian
+            system_install fonts-powerline
+            set_config $PWD/powerline $HOME/.config/powerline
+
+            # TODO: setting lines in bashrc
+        else
+            printf "Error when installing powerline-status!\n"
+        fi
+
+        end_section
+    fi
+else
+    printf "Powerline installation found! "
+    powerline-status --version
+    # TODO: check if there is a configuration
+        # TODO: Ask if we want to override/merge/ignore the configuration
+    # TODO: else - ask if we want to set this configuration
+fi
+
+# ------------------------------ WALLPAPERS -----------------------------------
 # TODO: currently not working
-#if [ -e $WALLPAPER_DIR ]; then
-#    read -p "Do you wish to update the wallpapers directory with saved wallpapers? [Y/n] " confirm
-#    if [[ $confirm == "" || $confirm == [yY] ]]; then
-#        start_section "WALLPAPERS"
-#        set_config $PWD/resource/images/wallpapers $WALLPAPER_DIR
-#    fi
-#
-#        # TODO use google drive instead of github
-#        # TODO
-#else
-#    printf "Found wallpaper directory at $WALLPAPER_DIR\n"
-##    read -p "Do you wish to update wallpaper options? [Y/n] " confirm
-#    # TODO: update wallpapers
-#fi
+read -p "Do you wish to update the wallpapers directory with saved wallpapers? [Y/n] " confirm
+if [[ $confirm == "" || $confirm == [yY] ]]; then
+    start_section "WALLPAPERS"
+    # TODO use google drive instead of github
+    if [ ! -e $WALLPAPER_DIR ]; then
+        mkdir -p $WALLPAPER_DIR
+    else
+        printf "Found wallpaper directory at $WALLPAPER_DIR\n"
+    fi
+    set_config $PWD/resource/images/wallpapers $WALLPAPER_DIR
+    end_section
+fi
 
 # ---------------------------------- PYWAL ------------------------------------
 # TODO: Check python3 configuration
@@ -331,28 +381,42 @@ if ! wal -v &> /dev/null; then
     read -p "Do you wish to install pywall? [Y/n] " confirm &&\
         [[ $confirm == "" || $confirm == [yY] ]] && \
             pip_system_install pywal
+
+    read -p "Do you wish to install colorthief backend? [Y/n] " confirm
+    if [[ $confirm == "" || $confirm == [yY] ]]; then
+        pip_system_install colorthief
+    else
+        system_install imagemagick
+    fi
+
+    # run pywal on current wallpaper
+    # TODO: currently runs on gnome but add options for other
+    wal -i $(gsettings get org.gnome.desktop.background picture-uri | awk '{sub(/file:\/\//, ""); print}') --backend colorthief
+
+    # TODO pywal on startup
 else
     printf "Pywal installation found! "
     wal -v
 fi
-# TODO Check if pywal and then link to wallpaper
-# TODO pywal on startup
 
 # ------------------------------- FONTAWESOME ---------------------------------
+# TODO: LOOKS LIKE FONT AWESOME NOW COSTS TO DOWNLOAD FFS
 # TODO: Node install in the beginning?
 # TODO: Check if fontawesome is installed
-if true; then
-    if ! node -v &> /dev/null; then
-        read -p "yarn requires npm. Do you wish to install npm? [Y/n]" confirm &&\
-        [[ $confirm == "" || $confirm == [yY] ]] && \
-            system_install node
-    fi
-    read -p "Do you wish to install pywall? [Y/n] " confirm &&\
-        [[ $confirm == "" || $confirm == [yY] ]] && \
-            pip_system_install pywal
-else
-    printf "Pywal installation found! "
-    wal -v
-fi
-# TODO Check if pywal and then link to wallpaper
-# TODO pywal on startup
+#if true; then
+#    read -p "Do you wish to install FontAwesome fonts? [Y/n] " confirm
+#    if [[ $confirm == "" || $confirm == [yY] ]]; then
+#        if ! node -v &> /dev/null; then
+#            read -p "yarn requires npm. Do you wish to install npm? [Y/n]" confirm &&\
+#            [[ $confirm == "" || $confirm == [yY] ]] && \
+#                system_install node
+#        fi
+#        if ! yarn --version &> /dev/null; then
+#            read -p "yarn requires npm. Do you wish to install npm? [Y/n]" confirm &&\
+#            [[ $confirm == "" || $confirm == [yY] ]] && \
+#                system_install node
+#        fi
+#    fi
+#else
+#    printf "FontAwesome font installation found! "
+#fi
