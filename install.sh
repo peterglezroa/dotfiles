@@ -243,7 +243,8 @@ if ! nvim --version &> /dev/null; then
 
         read -p "Do you wish to set up this nvim configuration? [Y/n] " confirm
         if [[ $confirm == "" || $confirm == [yY] ]]; then
-            set_config $PWD/nvim $HOME/.config/nvim
+            set_config $PWD/nvim $NVIM_CONFIG_DIR
+            git clone https://github.com/neovim/nvim-lspconfig $NVIM_CONFIG_DIR/pack/nvim/start/nvim-lspconfig
         fi
         end_section
     else

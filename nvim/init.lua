@@ -5,7 +5,7 @@ require("config.options")
 --vim.cmd [[colorscheme lushwal]]
 
 require("lualine").setup()
-require("pywal").setup()
+-- require("pywal").setup()
 
 -- PLUGIN EXAMPLE
 -- return {

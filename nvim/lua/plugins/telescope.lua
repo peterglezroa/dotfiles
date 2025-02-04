@@ -11,14 +11,14 @@ return {
             {"<leader>e",
                 function()
                     ext.file_browser.file_browser({
-                        initial_mode="normal",
+--                        initial_mode="normal",
                         cwd=utils.buffer_dir()
                     })
                 end,
                 desc = "File browser"},
             {"<leader>E",
                 function()
-                    ext.file_browser.file_browser({initial_mode="normal"})
+                    ext.file_browser.file_browser()
                 end,
                 desc = "File browser from root"},
 
