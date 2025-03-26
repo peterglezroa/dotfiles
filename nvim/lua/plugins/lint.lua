@@ -11,6 +11,7 @@ return {
                 "cpplint"
             },
 
+            -- rust
 
             -- javascript
             javascript = {
