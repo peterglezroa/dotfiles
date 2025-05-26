@@ -3,6 +3,7 @@ return {
     lazy = false,
     dependencies = {
         "williamboman/mason-lspconfig.nvim",
+        "neovim/nvim-lspconfig"
     },
     keys = {
         { "<leader>m", ":Mason<CR>" }

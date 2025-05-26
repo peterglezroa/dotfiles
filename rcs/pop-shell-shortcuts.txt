@@ -1,0 +1,46 @@
+RUN: gsettings set org.gnome.shell.extensions.dash-to-dock hot-keys false
+- Launchers
+    - "Launch web browser" = "Super+B"
+- Navigation
+    - "Move window one monitor down" = null
+    - "Move window one monitor to the left" = null
+    - "Move window one monitor to the right" = null
+    - "Move window one monitor up" = null
+    - "Move window one workspace to the left" = "Shift+Alt+Super+H"
+    - "Move window one workspace to the right" = "Shift+Alt+Super+L"
+    - "Move window to workspace 1" = "Shift+Super+1"
+    - "Move window to workspace 2" = "Shift+Super+2"
+    - "Move window to workspace 3" = "Shift+Super+3"
+    - "Move window to workspace 4" = "Shift+Super+4"
+    - "Switch to workspace 1" = "Super+1"
+    - "Switch to workspace 2" = "Super+2"
+    - "Switch to workspace 3" = "Super+3"
+    - "Switch to workspace 4" = "Super+4"
+- Screenshots
+    - "Record a screencast interactively" = "Shift+Super+R"
+    - "Take a screenshot interactively" = "Super+R"
+- System
+    - "Lock screen" = "Ctrl+Super+Q"
+    - "Open the quick settings menu" = "Super+C"
+    - "Show the notification list" = "Super+V"
+- Typing
+    - "Switch to next input source" = null
+    - "Switch to previous input source" = null
+- Navigation
+    - "Move window to workspace 1" = "Shift+Super+1"
+    - "Move window to workspace 2" = "Shift+Super+2"
+    - "Move window to workspace 3" = "Shift+Super+3"
+    - "Move window to workspace 4" = "Shift+Super+4"
+    - "Switch to workspace 1" = "Super+1"
+    - "Switch to workspace 2" = "Super+2"
+    - "Switch to workspace 3" = "Super+3"
+    - "Switch to workspace 4" = "Super+4"
+- Windows
+    - "Activate the window menu" = "Super+Space"
+    - "Close window" = "Super+W"
+    - "Hide window" = "Super+,"
+    - "Toggle maximization state" = "Super+F"
+    - "View split on left" = null
+    - "View split on right" = null
+- Custom Shortcuts
+    - "kitty" = "Shift+Super+T"

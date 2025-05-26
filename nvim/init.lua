@@ -3,7 +3,18 @@ require("config.keymaps")
 require("config.options")
 
 require("lualine").setup()
-require("pywal").setup()
+
+-- colorschemes
+
+-- Pywal?
+-- Option 1
+-- vim.cmd [[colorscheme lushwal]]
+-- Option 2
+-- require("pywal").setup()
+
+-- Grubox
+vim.o.background = "dark" -- or "light" for light mode
+vim.cmd([[colorscheme gruvbox]])
 
 -- PLUGIN EXAMPLE
 -- return {
@@ -16,3 +27,6 @@ require("pywal").setup()
             -- too complicated >.<
         -- end
     -- } <- puglins options
+    -- config = function() <- function that is executed after the plugin loads
+        -- bla bla
+    -- end
