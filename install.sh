@@ -2,32 +2,86 @@
 
 # ================================= TODO LIST =================================
 # REFACTORS
-# - Remove sudo calls
 # - Search for a better option than $PWD when doing ln
-# - functions per install? More readable code?
+# - If I do a header file, and I call a variable that could is defined until
+#   later; would it read it?
+#
 # FEATURES
-# - PopOS config file and shortcuts
-# - Script to login to google for drive etc (pop up)
-# - Install icloud?
+# - File with which configurations were installed + current pulled version
+#   + last version the script was run on
+#     - Idea is to have a script that can tell you if you should run the script
+#       again
 # - Add install all
 # - Add install specific package
-# - ln flag
-# - force installation for pip system install
+# - How to manage sudos?
+#
+# TOOLS?
+# - Automatic backups
+#     - maybe rsync?
+#     - Script to login to google for drive etc (pop up)
+#     - Install icloud?
+#     - Script to keep updating the folders
+#
 # BUGS
 # - Warn in case using root as user (home will not work)
 # - wallpaper dir depends on distro
 # - checking with -e will tell if file/dir exists but we want to let the user
 # know if it is something not correct
+# =============================================================================
 
-# =============================== HANDLE FLAGS ================================
+# ---------------------------- IMPORT HEADERS ---------------------------------
+source ./scripts/lib/headers-logs.sh # TODO! Change not to be relative path!
+source ./scripts/lib/headers-system.sh # TODO! Change not to be relative path!
+
+# --------------------------------- CONSTANTS ---------------------------------
+MERGE_SCRIPT_MSG="To compare and merge configuration files use TODO script\n"
+MANIFEST_PATH="./install-manifest.yaml"
+
+# --------------------------------- DEFAULTS ----------------------------------
+symbolic_links=true
+
+# =============================================================================
+#                            GENERAL USE FUNCTIONS                             
+# This section contains a general categorization set of functions that is used
+# within the script
+# This section will return the error code: 2
+# =============================================================================
+
+# ----------------------------- USER INTERACTION ------------------------------
+
+# confirm [Request message]
+# Function aimed to integrate with an if condition, which ask for approval to
+# the user before continuing
+confirm() {
+    if [[ $PGR_YESALL == true ]]; then
+        return 1
+    fi
+
+    read -p "$1 [Y/n] " confirm
+    [[ $confirm == "" || $confirm == [yY]  || $confirm == "yes" ]]
+}
+
+# select_option [available option]+
+# Function aimed to integrate with an case condition, which asks the user to
+# select a function from a list.
+# The default option will be the first argument received.
+select_option() {
+    if [ $? -lt 2 ]; then
+        slog_error ""
+        return 1
+    fi
+}
+
+# ------------------------------- HANDLE FLAGS --------------------------------
 usage() {
     # SCRIPT USAGE MESSAGE
-    echo "Usage: $0 [OPTIONS]"
-    echo "Options:"
+    echo "Usage: $0 [Flags]"
+    echo "Flags:"
     echo " -h, --help       Display this help message"
     echo " -v, --verbose    Enable verbose mode"
-    echo " -Y               Attempt to install all without asking for confirmation"
+    echo " -Y               Attempt to install all without asking for confirmation. Will use defaults"
     echo " -l, --list       List the options to be installed (separated by coma)"
+    echo " -s, --shadow     Does not run any authorative command. Only logs it."
 }
 
 has_argument() {
@@ -47,15 +101,23 @@ handle_flags(){
                 ;;
 
             -v | --verbose)
+                slog "Verbose mode is on"
                 verbose_mode=true
                 ;;
 
-            -Y)
+            -Y | -y)
+                slog_warn "Installing all packages and default options"
                 install_all=true
                 ;;
 
             -f)
+                slog_warn "Forcing installations as indicated of flag -f"
                 force_install=true
+                ;;
+
+            -c | --no-symbolic-links)
+                slog_warn "Copying configuration files instead of adding symbolic links"
+                symbolic_links=false
                 ;;
 
             -l)
@@ -68,8 +130,17 @@ handle_flags(){
                 list=$(extract_argument $@)
                 ;;
 
+            -S | --shadow)
+                slog_warn "Shadow mode is enabled!"
+                shadow_mode=true
+                ;;
+
+            -c | --copy-only)
+                slog_warn "Copy only set. Will not create soft link to configurations!"
+                SYM_LINKS=true
+                ;;
             *)
-                echo "Invalid option: $1" >&2
+                slog_error "Invalid option: $1"
                 usage
                 exit 1
                 ;;
@@ -78,117 +149,135 @@ handle_flags(){
     done
 }
 
-# ================================= CONSTANTS =================================
-tabs="    "
-#VIM_CONFIGURATION_DIRECTORY="$HOME/.config/nvim"
-#VIM_RC_FILE="init.vim"
-NVIM_CONFIG_DIR="$HOME/.config/nvim"
-
-MERGE_SCRIPT_MSG="To compare and merge configuration files use TODO script\n"
-
-# Verbose debug
-printf "\$HOME: $HOME\n"
-
-# ================================= FUNCTIONS =================================
-# TODO not working
-system_install() {
-    # TODO different options according to package system
-    sudo apt install -y $@
+# =============================================================================
+#                           INSTALLATION OVERWRITTES
+# This sections contains all the custom installation functions of applications
+# or tooling that cannot be installed directly with a specific package manager.
+# This section will return the error code: 3
+# =============================================================================
+installation_env_setup() {
+    slog_debug "installation_env_setup $@"
+    case $OS in
+        macOS)
+            macos_installation_env_setup
+        ;;
+        *)
+            slog_error "A installation overwrite wrapper for $os does not exist!"
+        ;;
+    esac
 }
 
-pip_user_install() {
-    sudo pip3 install --user --break-system-packages $1
+installation_wrapper() {
+    slog_debug "installation_wrapper $@"
+
+    if command -v $1 &> /dev/null; then
+        slog "Installation found for $1"
+        return 0
+    fi
+
+    # Check if there is an installation overwrite in relation to an OS
+    slog_debug "Using detected os $OS"
+    case $OS in
+        macOS)
+            macos_installation_wrapper $@
+        ;;
+        *)
+            slog_error "A installation overwrite wrapper for $os does not exist!"
+        ;;
+    esac
 }
 
-pip_system_install() {
-    # TODO: warning about possibly breaking the system
-    sudo apt-get install python3-$1
-    if [ $? != 0 ]; then
-        if [[ $force_install = true ]]; then
-            confirm="Y"
-        else
-            read -p "Do you wish to force install $1? [y/N] " confirm
+# ---------------------------------- macOS -------------------------------------
+macos_installation_env_setup() {
+    slog_debug "macos_installation_env_setup $@"
+
+    # Install brew if it doesn't exist
+    if ! command -v brew &> /dev/null; then
+        slog_warn "brew installation not found!"
+        if confirm "brew installation is required. Should it be installed?"; then
+            macos_install_brew
         fi
-
-        if [[ $confirm == [yY] ]]; then
-            sudo pip3 install $1 --break-system-packages
-        fi
     fi
+
+    echo "brew"
+    return 0
 }
 
-start_section() {
-    # TODO error handling: no arguments
-    n=$(((80-${#1}-2)/2))
-    printf "\n\n"
-    printf "=%.s" $(eval "echo {1.."$(($n))"}")
-    printf " $1 "
-    if test $((${#1} % 2)) -ne 0; then
-        n=$(($n+1))
+macos_installation_wrapper() {
+    slog_debug "macos_installation_wrapper $@"
+
+    case $1 in
+        *)
+            slog_debug "Did not find any installation overwrite for pkg $1"
+            shadow brew install $@
+            return 0
+        ;;
+    esac
+    slog_debug "macos_installation_wrapper error: I...don't know how I got here"
+    exit 3
+}
+
+macos_install_brew() {
+    slog "Installing brew with custom installation"
+    /bin/bash -c \
+        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh) NONINTERACTIVE"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh) NONINTERACTIVE"
+
+    if test $? -ne 0; then
+        slog_error "Failed to install brew!"
+        exit 3
     fi
-    printf "=%.s" $(eval "echo {1.."$(($n))"}")
-    printf "\n"
+
+    eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+    return 0
 }
 
-end_section() {
-    printf "\n"
-    printf "=%.s" {1..79}
-    printf "\n\n"
-}
-
-set_config() {
-    # TODO error handling: no arguments
-    # TODO check file exists
-    if [ $symbolic_links == 1 ]; then
-        printf "Creating symbolic link $2->$2...\n"
-        ln -s $1 $2
-    else
-        printf "Copying configuration $1 to $2...\n"
-        cp -r $1 $2
-    fi
-}
+# -------------------------------- hyprland -----------------------------------
 
 # =============================================================================
-#                                 MAIN EXECUTION
+#                               MAIN EXECUTION
+# This section will return the error code: 1
 # =============================================================================
 
-# =========================== DISTRO DETECTION VARS ===========================
-WALLPAPER_DIR="$HOME/Pictures/wallpapers"
-
-# =========================== INSTALL CONFIGURATION ===========================
+# ----------------------------- DETECTING ENV ---------------------------------
 handle_flags "$@"
 
-#read -p "Do you wish to utilize symbolic links for better version control? [Y/n]" confirm
-confirm="y"
-if [[ $confirm == "" || $confirm == [yY] ]]; then
-    symbolic_links=1
-else
-    symbolic_links=0
-fi
+# Save detected os
+OS=$(detect_system)
+slog_debug "Detected OS system: $OS"
 
+# Determine pkg managers available
+pkg_mgr=$(macos_installation_env_setup)
+slog_debug "Package managers available (in order): $pkg_mgr"
 
-# ============================= SCRIPTS AND TOOLS =============================
-# TODO:
-# sudo apt-get update
+# ----------------- INSTALL REQUIRED TOOLS FOR THIS SCRIPT --------------------
+installation_wrapper yq
 
-# git
-if ! git --version &> /dev/null; then
-    printf "Installing git...\n"
-    system_install git
-fi
+# --------------------------- INSTALL MANIFEST --------------------------------
+cat_len=$(yq '. | length' "$MANIFEST_PATH")
+slog_debug "Parsed $cat_len categories in manifest"
+for i in $(seq 0 $((cat_len - 1))); do
+    category=$(yq ".[$i]" $MANIFEST_PATH)
+    start_log_section $(echo "$category" | yq ".category")
+    slog_debug "Category yaml: \n$category"
 
-# curl
-if ! curl --version &> /dev/null; then
-    printf "Installing curl...\n"
-    system_install curl      
-fi
+    pkg_len=$(echo "$category" | yq '.packages | length')
+    slog_debug "Found $pkg_len packages to iterate"
+    for j in $(seq 0 $((pkg_len - 1))); do
+        if command -v "$(echo '$category' | yq )" &> /dev/null; then
+            slog "Package $name already installed... Skipping"
+            continue
+        fi
 
-# python
-if ! python3 --version &> /dev/null; then
-    printf "Installing python3...\n"
-    system_install python3    
-fi
+        slog "Package: $name, Command to install: $cmd"
+        shadow $pkg_cmd
+    done < <(echo "$pkgs")
+done
+
+exit 0
 
 # ----------------------------------- ZSH -------------------------------------
+# Shell installation
 #if ! zsh --version &> /dev/null; then
 #    read -p "Do you wish to install and use zsh as default shell? [Y/n] " confirm
 #    if [[ $confirm == "" || $confirm == [yY] ]]; then
@@ -212,97 +301,85 @@ fi
 #    # TODO: Compare zsh profile to the current configuration
 #fi
 
-# ---------------------------------- KITTY ------------------------------------
-if ! kitty --version &> /dev/null; then
-    read -p "Do you wish to install kitty terminal? [Y/n] " confirm
-    if [[ $confirm == "" || $confirm == [yY] ]]; then
+# ---------------------------------- TERMINAL -----------------------------------
+# Do not show iterm option if not macos
+if [[ $PGR_SYSTEM == "macOS" ]]; then
+    PGR_OPTIONS="[ghostty] | kitty | iterm2 | none"
+else
+    PGR_OPTIONS="[ghostty] | kitty | none"
+fi
+
+read -p "Which terminal do you wish to install?" confirm
+case $confirm in
+    ghostty)
+        start_section "Ghostty"
+        slog "Installing Ghostty..."
+        system_install ghostty
+
+        slog "Setting Ghossty configuration files..."
+        set_config $PWD/ghostty $HOME/.config/ghostty
+
+        end_section
+        ;;
+    kitty)
         start_section "Kitty"
-        printf "${tabs}Installing kitty....\n"
+        slog "Installing kitty...."
         system_install kitty
 
-        printf "${tabs}Setting kitty's configuration file...\n"
+        slog "Setting kitty's configuration file..."
         set_config $PWD/kitty $HOME/.config/kitty
 
         end_section
-    fi
-else
-    printf "Kitty installation found! "
-    kitty --version
-    # TODO: Check if a configuration already exists
-        # TODO: Ask if we want to override/merge/ignore the configuration
-    # TODO: else - ask if we want to set the configuration
-fi
+        ;;
+    iterm2)
+        if [[ $PGR_SYSTEM == "macOS" ]]; then
+            slog_warn "Skipping installation of a terminal..."
+        fi
+
+        start_section "iterm2"
+        slog "Installing iterm2..."
+        system_install iterm2
+
+        slog "Setting iterm's configuration files..."
+        set_config $PWD/iterm2 $HOME/.config/iterm2
+        ;;
+    *)
+        slog_warn "Skipping installation of a terminal..."
+        ;;
+esac
 
 # --------------------------------- NVIM/VIM -----------------------------------
-if ! nvim --version &> /dev/null; then
-    read -p "Do you wish to install neovim? [Y/n] " confirm
-    if [[ $confirm == "" || $confirm == [yY] ]]; then
-        using_nvim=true
+if ! command -z nvim &> /dev/null; then
+    if confirm "Do you wish to install neovim?"; then
         start_section "NVIM"
-        # TODO: install nvim
-
-        read -p "Do you wish to set up this nvim configuration? [Y/n] " confirm
-        if [[ $confirm == "" || $confirm == [yY] ]]; then
-            set_config $PWD/nvim $NVIM_CONFIG_DIR
-            git clone https://github.com/neovim/nvim-lspconfig $NVIM_CONFIG_DIR/pack/nvim/start/nvim-lspconfig
-        fi
+        slog "Installing neovim"
+        system_install neovim
         end_section
-    else
-        using_nvim=false
     fi
 else
-    printf "Nvim installation found! "
-    nvim --version
-    using_nvim=true
-    # TODO: check if there is a configuration
-        # TODO: Ask if we want to override/merge/ignore the configuration
-    # TODO: else - ask if we want to set this configuration
-#    read -p "Do you wish to set up this nvim configuration? [Y/n] " confirm
-#    if [[ $confirm == "" || $confirm == [yY] ]]; then
-#        set_config $PWD/nvim $HOME/.config/nvim
-#    fi
+    slog "nvim installation found! Neovim version: $(nvim --version)"
 fi
 
-# TODO: currently not working
-#if [[ !$(vim --version &> /dev/null) && !$using_nvim ]]; then
-#    read -p "Do you wish to install vim? [Y/n] " confirm
-#    if [[ $confirm == "" || $confirm == [yY] ]]; then
-#        start_section "VIM"
-#        # TODO: install vim
-#
-#        read -p "Do you wish to setup this vim configuration [Y/n] " confirm
-#        if ! [ -f $HOME/.config/vim/autoload/plug.vim ]; then
-#            printf "${tabs}Installing Plug in manager...\n"
-#            curl -flo $HOME/.config/vim/autoload/plug.vim --create-dirs \
-#                    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-#            set_config $PWD/vim/init.vim $HOME/.config/vim/.
-#            # TODO: run plug install
-#        fi
-#    fi
-#else
-#    printf "Vim installation found! "
-#    vim --version
-#    # TODO: check if there is a configuration
-#        # TODO: Ask if we want to override/merge/ignore the configuration
-#    # TODO: else - ask if we want to set this configuration
-#fi
+if [[ command -z nvim &> /dev/null && confirm "Do you want peter's nvim config?" ]]; then
+    slog "Setting neovim config folder"
+    set_config $PWD/nvim $HOME/.config/nvim
+fi
 
 # --------------------------------- Z SCRIPT ----------------------------------
-if [ -f $HOME/.local/bin/z.sh ]; then
-    printf "Z script installation found!\n"
-else
-    read -p "Do you wish to install z script? [Y/n] " confirm
-    if [[ $confirm == "" || $confirm == [yY] ]]; then
+if [ ! -f $HOME/.local/bin/z.sh ]; then
+    if confirm "Do you wish to install z script"; then
         start_section "Z SCRIPT"
         wget "https://raw.githubusercontent.com/rupa/z/master/z.sh" \
             -O $HOME/.local/bin/z.sh
         end_section
     fi
+else
+    slog "Z script installation found!\n"
 fi
 
-# ----------------------------------- GIT -------------------------------------
-read -p "Do you wish to append git aliases? [Y/n] " confirm
-if [[ $confirm == "" || $confirm == [yY] ]]; then
+# ----------------------------------- RCs -------------------------------------
+# TODO: rc comparison!
+if confirm "Do you wish to append git aliases?"; then
     if [ -f $HOME/.gitconfig ]; then
         echo "Appending to $HOME/.gitconfig..."
         # TODO: merge config
@@ -314,6 +391,34 @@ if [[ $confirm == "" || $confirm == [yY] ]]; then
         set_config $PWD/config/gitconfig $HOME/.gitconfig
     fi
 fi
+
+# --------------------------------- CLAUDE ------------------------------------
+# Install Claude
+if ! command -v claude &> /dev/null; then
+    slog "claude installation not found."
+    adsf
+    read -p "Do you wish to install claude? [Y/n] " confirm
+
+    if [[ $confirm == "" || $confirm == [
+else
+    slog "claude installation found! Claude version: $(claude --version)"
+fi
+
+# Install Claude Code
+if ! command -v claude-code &> /dev/null; then
+    slog "claude-code installation not found."
+    read -p "Do you wish to install claude-code? [Y/n] " confirm
+else
+    slog "claude-code installation found!"
+fi
+
+if [[ $confirm == "" || $confirm == [yY] ]]; then
+    system_install claude-code
+fi
+
+
+# Install Setup
+# TODO: compare global claude configuration?
 
 # ================================ AESTHETICS =================================
 

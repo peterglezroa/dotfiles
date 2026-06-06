@@ -1,0 +1,80 @@
+- category: Required Tooling
+  packages:
+
+    - name: git
+      version:
+      pkg-mgs:
+        brew: git
+        apt: git
+        pacman: 
+
+    - name: curl
+      version: 
+      pkg-mgs:
+        brew: curl
+        apt: curl
+
+    - name: python3
+      version:
+      pkg-mgs:
+        brew: python3
+        apt: python3
+
+- category: Tooling
+  packages:
+
+    - name: zsh
+      config_path:
+      config_home:
+      pkg-mgs:
+        brew:
+
+    - name: bash
+      config_path:
+      config_home:
+      pkg-mgs:
+        brew:
+
+    - name: nvim
+      config_path:
+      config_home:
+      pkg-mgs:
+        brew:
+
+    - name: tmux
+      config_path:
+      config_home:
+      pkg-mgs:
+        brew:
+
+    - name:
+      config_path:
+      config_home:
+      pkg-mgs:
+        brew:
+
+
+- category: Aesthetics
+  packages:
+
+     - name: Nerd Fonts
+       version:
+       pkg-mgs:
+         brew:
+
+     - name: Font Awesome
+       version:
+       pkg-mgs:
+         brew:
+
+     - name: Powerline
+       version:
+       pkg-mgs:
+         brew:
+
+- category: Applications
+  packages:
+
+     - name: Spotify
+       pkg-mgs:
+         brew: --cask spotify
